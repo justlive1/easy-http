@@ -14,6 +14,7 @@
 
 package vip.justlive.easyhttp.scanner;
 
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -23,6 +24,7 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import vip.justlive.easyhttp.annotation.HttpClientScan;
+import vip.justlive.oxygen.core.constant.Constants;
 
 /**
  * httpclient registrar
@@ -48,14 +50,19 @@ public class HttpClientRegistrar implements ImportBeanDefinitionRegistrar, Resou
         .fromMap(metadata.getAnnotationAttributes(HttpClientScan.class.getName()));
     if (attributes != null) {
       String[] basePackages = attributes.getStringArray("value");
-      if (basePackages != null) {
-        HttpClientScanner scanner = new HttpClientScanner(registry);
-        scanner.setResourceLoader(resourceLoader);
-        scanner.scan(basePackages);
-        return;
+      String basePackage = metadata.getClassName()
+          .substring(0, metadata.getClassName().lastIndexOf(Constants.DOT));
+      if (basePackages == null || basePackages.length == 0) {
+        basePackages = new String[]{basePackage};
+      } else {
+        basePackages = Arrays.copyOf(basePackages, basePackages.length + 1);
+        basePackages[basePackages.length - 1] = basePackage;
       }
+      HttpClientScanner scanner = new HttpClientScanner(registry);
+      scanner.setResourceLoader(resourceLoader);
+      scanner.scan(basePackages);
+      return;
     }
-
     LOGGER.warn("not found @HttpClientScan or has no value");
   }
 
