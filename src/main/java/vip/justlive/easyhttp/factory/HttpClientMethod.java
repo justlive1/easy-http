@@ -232,7 +232,7 @@ class HttpClientMethod {
             .replace(pathVarSeat(entry.getKey()), safeToString(args[entry.getValue()]));
       }
     }
-    HttpRequest request = HttpRequest.url(realUrl).method(hm);
+    HttpRequest request = HttpRequest.url(realUrl).method(hm).followRedirects(true);
     if (contentType != null) {
       request.addHeader(Constants.CONTENT_TYPE, contentType);
     }
