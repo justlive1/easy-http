@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * proxy
  *
+ * @param <T> 泛型
  * @author wubo
  */
 public class HttpClientProxy<T> implements InvocationHandler {

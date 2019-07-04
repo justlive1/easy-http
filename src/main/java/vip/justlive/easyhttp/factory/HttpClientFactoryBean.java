@@ -22,6 +22,7 @@ import org.springframework.core.env.Environment;
 /**
  * factory bean of httpclient
  *
+ * @param <T> 泛型
  * @author wubo
  */
 public class HttpClientFactoryBean<T> implements FactoryBean<T>, EnvironmentAware {
