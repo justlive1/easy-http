@@ -6,7 +6,7 @@
 
   <groupId>vip.justlive</groupId>
   <artifactId>easy-http</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
 
   <name>easy-http</name>
@@ -19,7 +19,7 @@
 
     <fastjson.version>1.2.57</fastjson.version>
     <junit.version>4.12</junit.version>
-    <oxygen.version>2.0.6</oxygen.version>
+    <oxygen.version>2.0.7</oxygen.version>
     <slf4j.version>1.7.26</slf4j.version>
     <spring.version>4.3.5.RELEASE</spring.version>
 
