@@ -36,11 +36,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import vip.justlive.oxygen.core.constant.Constants;
-import vip.justlive.oxygen.core.net.HttpMethod;
-import vip.justlive.oxygen.core.net.HttpRequest;
-import vip.justlive.oxygen.core.net.HttpResponse;
-import vip.justlive.oxygen.core.util.MoreObjects;
+import vip.justlive.oxygen.core.net.http.HttpMethod;
+import vip.justlive.oxygen.core.net.http.HttpRequest;
+import vip.justlive.oxygen.core.net.http.HttpResponse;
+import vip.justlive.oxygen.core.util.HttpHeaders;
+import vip.justlive.oxygen.core.util.Strings;
 
 /**
  * method wrapper
@@ -170,7 +170,7 @@ class HttpClientMethod {
     if (values.length > 0) {
       url = environment.resolvePlaceholders(values[0]);
     } else {
-      url = Constants.EMPTY;
+      url = Strings.EMPTY;
     }
     if (consumes.length > 0) {
       contentType = consumes[0];
@@ -188,12 +188,12 @@ class HttpClientMethod {
   private void handlerParamAnnotations(Parameter parameter, int index) {
     RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
     if (requestParam != null) {
-      querys.put(MoreObjects.firstNonEmpty(requestParam.value(), parameter.getName()), index);
+      querys.put(Strings.firstNonNull(requestParam.value(), parameter.getName()), index);
       return;
     }
     RequestHeader requestHeader = parameter.getAnnotation(RequestHeader.class);
     if (requestHeader != null) {
-      headers.put(MoreObjects.firstNonEmpty(requestHeader.value(), parameter.getName()), index);
+      headers.put(Strings.firstNonNull(requestHeader.value(), parameter.getName()), index);
       return;
     }
     if (parameter.isAnnotationPresent(RequestBody.class)) {
@@ -202,7 +202,7 @@ class HttpClientMethod {
     }
     PathVariable pathVariable = parameter.getAnnotation(PathVariable.class);
     if (pathVariable != null) {
-      pathVars.put(MoreObjects.firstNonEmpty(pathVariable.value(), parameter.getName()), index);
+      pathVars.put(Strings.firstNonNull(pathVariable.value(), parameter.getName()), index);
     }
   }
 
@@ -234,7 +234,7 @@ class HttpClientMethod {
     }
     HttpRequest request = HttpRequest.url(realUrl).method(hm).followRedirects(true);
     if (contentType != null) {
-      request.addHeader(Constants.CONTENT_TYPE, contentType);
+      request.addHeader(HttpHeaders.CONTENT_TYPE, contentType);
     }
     headers.forEach((k, v) -> request.addHeader(k, safeToString(args[v])));
     if (!querys.isEmpty()) {
@@ -261,7 +261,7 @@ class HttpClientMethod {
 
   private String safeToString(Object obj) {
     if (obj == null) {
-      return Constants.EMPTY;
+      return Strings.EMPTY;
     }
     return obj.toString();
   }
@@ -271,13 +271,13 @@ class HttpClientMethod {
     boolean endWithSlash = false;
     if (parent != null && parent.length() > 0) {
       sb.append(parent);
-      if (!parent.endsWith(Constants.SLASH)) {
-        sb.append(Constants.SLASH);
+      if (!parent.endsWith(Strings.SLASH)) {
+        sb.append(Strings.SLASH);
       }
       endWithSlash = true;
     }
     if (child != null) {
-      if (endWithSlash && child.startsWith(Constants.SLASH)) {
+      if (endWithSlash && child.startsWith(Strings.SLASH)) {
         sb.append(child.substring(1));
       } else {
         sb.append(child);

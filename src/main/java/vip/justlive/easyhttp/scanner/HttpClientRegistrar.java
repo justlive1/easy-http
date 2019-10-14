@@ -24,7 +24,7 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import vip.justlive.easyhttp.annotation.HttpClientScan;
-import vip.justlive.oxygen.core.constant.Constants;
+import vip.justlive.oxygen.core.util.Strings;
 
 /**
  * httpclient registrar
@@ -51,7 +51,7 @@ public class HttpClientRegistrar implements ImportBeanDefinitionRegistrar, Resou
     if (attributes != null) {
       String[] basePackages = attributes.getStringArray("value");
       String basePackage = metadata.getClassName()
-          .substring(0, metadata.getClassName().lastIndexOf(Constants.DOT));
+          .substring(0, metadata.getClassName().lastIndexOf(Strings.DOT));
       if (basePackages == null || basePackages.length == 0) {
         basePackages = new String[]{basePackage};
       } else {
