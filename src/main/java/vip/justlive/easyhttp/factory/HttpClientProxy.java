@@ -15,14 +15,18 @@
 package vip.justlive.easyhttp.factory;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.RequestMapping;
+import vip.justlive.oxygen.core.util.net.http.HttpRequestExecution;
+import vip.justlive.oxygen.core.util.net.http.HttpRequestInterceptor;
 
 /**
  * proxy
@@ -31,60 +35,62 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author wubo
  */
 public class HttpClientProxy<T> implements InvocationHandler {
-
+  
   private final Class<T> clientInterface;
   private final Environment environment;
+  private final HttpRequestExecution requestExecution;
+  private final List<HttpRequestInterceptor> interceptors;
   private final Map<Method, HttpClientMethod> cache = new ConcurrentHashMap<>(4);
   private String root;
-
-  HttpClientProxy(Class<T> clientInterface, Environment environment) {
+  
+  HttpClientProxy(Class<T> clientInterface, Environment environment,
+      HttpRequestExecution requestExecution, List<HttpRequestInterceptor> interceptors) {
     this.clientInterface = clientInterface;
     this.environment = environment;
+    this.requestExecution = requestExecution;
+    this.interceptors = interceptors;
     this.init();
   }
-
+  
   private void init() {
     RequestMapping req = this.clientInterface.getAnnotation(RequestMapping.class);
     if (req != null && req.value().length > 0) {
       root = this.environment.resolvePlaceholders(req.value()[0]);
     }
   }
-
+  
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-
+    
     if (Object.class.equals(method.getDeclaringClass())) {
       return method.invoke(this, args);
     }
-
+    
     if (isDefaultMethod(method)) {
       return invokeDefaultMethod(proxy, method, args);
     }
-
-    HttpClientMethod methodCache = cache.get(method);
-    if (methodCache == null) {
-      cache.putIfAbsent(method, new HttpClientMethod(root, method, environment));
-      methodCache = cache.get(method);
-    }
-    return methodCache.execute(args);
+    
+    return cache.computeIfAbsent(method,
+            k -> new HttpClientMethod(root, method, environment, requestExecution, interceptors))
+        .execute(args);
   }
-
+  
   private boolean isDefaultMethod(Method method) {
     return (method.getModifiers() & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC))
         == Modifier.PUBLIC && method.getDeclaringClass().isInterface();
   }
-
+  
   private Object invokeDefaultMethod(Object proxy, Method method, Object[] args) throws Throwable {
-    final Constructor<MethodHandles.Lookup> constructor = MethodHandles.Lookup.class
+    final Constructor<Lookup> constructor = MethodHandles.Lookup.class
         .getDeclaredConstructor(Class.class, int.class);
     if (!constructor.isAccessible()) {
       constructor.setAccessible(true);
     }
     final Class<?> declaringClass = method.getDeclaringClass();
     return constructor.newInstance(declaringClass,
-        MethodHandles.Lookup.PRIVATE | MethodHandles.Lookup.PROTECTED | MethodHandles.Lookup.PACKAGE
-            | MethodHandles.Lookup.PUBLIC).unreflectSpecial(method, declaringClass).bindTo(proxy)
+            MethodHandles.Lookup.PRIVATE | MethodHandles.Lookup.PROTECTED | MethodHandles.Lookup.PACKAGE
+                | MethodHandles.Lookup.PUBLIC).unreflectSpecial(method, declaringClass).bindTo(proxy)
         .invokeWithArguments(args);
   }
-
+  
 }

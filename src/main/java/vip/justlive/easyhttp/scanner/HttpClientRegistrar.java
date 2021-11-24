@@ -24,7 +24,7 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import vip.justlive.easyhttp.annotation.HttpClientScan;
-import vip.justlive.oxygen.core.util.Strings;
+import vip.justlive.oxygen.core.util.base.Strings;
 
 /**
  * httpclient registrar
@@ -32,27 +32,27 @@ import vip.justlive.oxygen.core.util.Strings;
  * @author wubo
  */
 public class HttpClientRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
-
+  
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientRegistrar.class);
-
+  
   private ResourceLoader resourceLoader;
-
+  
   @Override
   public void setResourceLoader(ResourceLoader resourceLoader) {
     this.resourceLoader = resourceLoader;
   }
-
+  
   @Override
   public void registerBeanDefinitions(AnnotationMetadata metadata,
       BeanDefinitionRegistry registry) {
-
+    
     AnnotationAttributes attributes = AnnotationAttributes
         .fromMap(metadata.getAnnotationAttributes(HttpClientScan.class.getName()));
     if (attributes != null) {
       String[] basePackages = attributes.getStringArray("value");
       String basePackage = metadata.getClassName()
           .substring(0, metadata.getClassName().lastIndexOf(Strings.DOT));
-      if (basePackages == null || basePackages.length == 0) {
+      if (basePackages.length == 0) {
         basePackages = new String[]{basePackage};
       } else {
         basePackages = Arrays.copyOf(basePackages, basePackages.length + 1);
@@ -65,5 +65,5 @@ public class HttpClientRegistrar implements ImportBeanDefinitionRegistrar, Resou
     }
     LOGGER.warn("not found @HttpClientScan or has no value");
   }
-
+  
 }

@@ -14,7 +14,6 @@
 
 package vip.justlive.easyhttp.scanner;
 
-import java.util.Arrays;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,38 +33,38 @@ import vip.justlive.easyhttp.factory.HttpClientFactoryBean;
  * @author wubo
  */
 public class HttpClientScanner extends ClassPathBeanDefinitionScanner {
-
+  
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientScanner.class);
-
+  
   HttpClientScanner(BeanDefinitionRegistry registry) {
     super(registry, false);
     addIncludeFilter(new AnnotationTypeFilter(HttpClient.class));
   }
-
+  
   @Override
   protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
     Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
     if (beanDefinitions.isEmpty()) {
       LOGGER.warn("No HttpClient was found in '{}' package. Please check your configuration.",
-          Arrays.toString(basePackages));
+          (Object) basePackages);
     } else {
       processBeanDefinitions(beanDefinitions);
     }
     return beanDefinitions;
   }
-
+  
   @Override
   protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
     return beanDefinition.getMetadata().isInterface() && beanDefinition.getMetadata()
         .isIndependent();
   }
-
+  
   private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
     GenericBeanDefinition definition;
-
+    
     for (BeanDefinitionHolder holder : beanDefinitions) {
       definition = (GenericBeanDefinition) holder.getBeanDefinition();
-
+      
       String beanClassName = definition.getBeanClassName();
       if (beanClassName == null) {
         continue;
@@ -74,11 +73,11 @@ public class HttpClientScanner extends ClassPathBeanDefinitionScanner {
         LOGGER.debug("creating HttpClientFactoryBean with name '{}' and '{}' interface",
             holder.getBeanName(), beanClassName);
       }
-
+      
       definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName);
       definition.setBeanClass(HttpClientFactoryBean.class);
       definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-
+      
     }
   }
 }
